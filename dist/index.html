@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="별이 뜬 한밤중, 작은 섬에 나만의 모닥불을 피워요.">
+  <title>같이놀자 아일랜드</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="island-model.js" defer></script>
+  <script src="game.js" defer></script>
+  <script src="sharing.js" defer></script>
+  <script src="multiplayer.js" defer></script>
+  <script src="account.js" defer></script>
+  <script src="island-life.js" defer></script>
+</head>
+<body>
+  <canvas id="scene" width="1200" height="900" aria-hidden="true"></canvas>
+  <header>
+    <div class="brand"><span aria-hidden="true">✦</span> 같이놀자 아일랜드</div>
+    <div class="header-actions">
+      <div class="decor-header" id="decor-header" hidden>
+        <button type="button" class="secondary" id="workshop">섬 꾸미기</button>
+        <button type="button" class="secondary shop-button" id="point-shop">포인트 상점</button>
+      </div>
+      <button type="button" class="sound" id="sound" aria-pressed="false">파도 소리 켜기</button>
+      <button type="button" class="secondary" id="account">계정</button>
+    </div>
+  </header>
+  <main>
+    <section id="welcome" class="welcome" aria-labelledby="title">
+      <h1 id="title">같이놀자<br>아일랜드</h1>
+      <p>별이 뜬 한밤중, 우리만의 작은 섬.</p>
+      <button class="primary" id="start" type="button">내 섬 만들기 <span aria-hidden="true">→</span></button>
+      <button class="letter-link" id="read-letter" type="button">섬에서 온 편지</button>
+    </section>
+    <form id="setup" class="panel" hidden>
+      <div class="steps" id="steps"></div>
+      <h2 id="setup-title"></h2>
+      <div id="options"></div>
+      <div class="actions">
+        <button class="secondary" type="button" id="back">뒤로</button>
+        <button class="primary" id="next">다음 <span aria-hidden="true">→</span></button>
+      </div>
+    </form>
+    <section class="island-info" id="island-info" hidden>
+      <h2 id="island-title"></h2>
+      <p id="hint" role="status"></p>
+      <p id="island-save" role="status" hidden></p>
+      <p id="island-bio" class="island-bio" hidden></p>
+    </section>
+    <div class="orbit-controls" id="orbit-controls" role="group" aria-label="섬 카메라" hidden>
+      <button class="secondary orbit-button" type="button" id="orbit-left" aria-label="카메라 왼쪽으로 돌리기">↶</button>
+      <button class="secondary orbit-button" type="button" id="orbit-right" aria-label="카메라 오른쪽으로 돌리기">↷</button>
+      <span>드래그해서 둘러보기</span>
+    </div>
+    <div id="land" class="land" hidden><button id="fire-handle" type="button" aria-label="모닥불 드래그. 방향키로도 옮길 수 있어요.">✦</button></div>
+    <div id="fire-actions" class="tools" hidden>
+      <button id="cancel-fire" class="secondary" type="button">취소</button>
+      <button id="save-fire" class="primary" type="button">모닥불 위치 저장</button>
+    </div>
+    <div id="tools" class="tools" hidden>
+      <button class="secondary" type="button" id="move" aria-pressed="false">모닥불 옮기기</button>
+      <button class="secondary photo-button" type="button" id="photo"><i class="camera-icon" aria-hidden="true"></i> 사진 찍기</button>
+      <button class="primary" type="button" id="host-room">친구랑 놀기</button>
+      <button class="secondary" type="button" id="leave-visit" hidden>내 섬으로</button>
+    </div>
+    <section id="island-life" class="life" aria-label="섬 생활" hidden>
+      <div id="shell-count" class="shell-count" aria-live="polite"></div>
+      <div class="life-actions">
+        <button id="look" class="secondary" type="button">캐릭터</button>
+        <button id="profile" class="secondary" type="button">내 소개</button>
+        <button id="guestbook" class="secondary" type="button">방명록</button>
+      </div>
+    </section>
+    <section class="room-controls" id="room-controls" aria-label="함께 놀기" hidden>
+      <p class="room-guide">방향키 또는 섬을 눌러 움직여요.</p>
+      <div class="tools room-tools">
+        <button class="secondary" type="button" id="copy-invite">친구 초대</button>
+        <button class="primary" type="button" id="wave">손 흔들기</button>
+        <button class="secondary" type="button" id="leave-room">나가기</button>
+      </div>
+    </section>
+    <dialog id="photo-dialog" class="photo-dialog" aria-labelledby="photo-title">
+      <div class="photo-top">
+        <div><h2 id="photo-title">사진 찍기</h2><p>인스타 스토리 · 9:16</p></div>
+        <form method="dialog"><button class="secondary orbit-button" aria-label="사진 모드 닫기">×</button></form>
+      </div>
+      <div class="viewfinder"><canvas id="photo-preview" width="540" height="960" aria-label="저장할 섬 사진 미리보기"></canvas></div>
+      <div class="photo-controls" role="group" aria-label="사진 카메라">
+        <button class="secondary orbit-button" id="photo-left" type="button" aria-label="카메라 왼쪽으로 돌리기">↶</button>
+        <button class="primary photo-button" id="capture" type="button"><i class="camera-icon" aria-hidden="true"></i> PNG 저장</button>
+        <button class="secondary orbit-button" id="photo-right" type="button" aria-label="카메라 오른쪽으로 돌리기">↷</button>
+      </div>
+      <p class="photo-status" id="photo-status" role="status">드래그해서 구도를 잡아봐요.</p>
+    </dialog>
+    <dialog id="room-dialog" class="panel">
+      <form id="room-form">
+        <h2 id="room-title"></h2>
+        <label class="name-label" for="room-name">별명</label>
+        <input id="room-name" maxlength="24" placeholder="섬 친구" autocomplete="nickname">
+        <div id="guest-look" hidden>
+          <label class="name-label" for="guest-character">캐릭터</label>
+          <select id="guest-character"><option value="0">꼬마 사람</option><option value="1">토끼</option><option value="2">곰</option></select>
+          <label class="name-label" for="guest-color">옷 색</label>
+          <select id="guest-color"><option value="0">라벤더</option><option value="1">민트</option><option value="2">살구</option></select>
+        </div>
+        <p id="room-error" role="status" hidden></p>
+        <div class="actions">
+          <button class="secondary" id="close-room-dialog" type="button">닫기</button>
+          <button class="primary" id="enter-room">들어가기</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="invite-dialog" class="panel">
+      <h2>친구 초대하기</h2>
+      <label class="name-label" for="invite-link">초대 링크</label>
+      <input id="invite-link" type="url" readonly>
+      <div id="room-sharing"></div>
+      <p id="invite-hint" role="status"></p>
+      <form method="dialog" class="actions">
+        <button class="secondary">닫기</button>
+        <button class="primary" type="button" id="copy-link">링크 복사</button>
+      </form>
+    </dialog>
+    <dialog id="account-dialog" class="panel" aria-labelledby="account-title">
+      <h2 id="account-title">내 섬 계정</h2>
+      <p id="account-unavailable" class="account-note" hidden></p>
+      <div id="account-active" hidden>
+        <p class="account-note" id="account-name"></p>
+        <p class="account-note" id="account-island"></p>
+        <button type="button" class="secondary" id="account-retry" hidden>섬 다시 저장</button>
+        <div class="actions">
+          <button type="button" class="secondary" id="sign-out">로그아웃</button>
+          <button type="button" class="primary" id="account-return">내 섬으로</button>
+        </div>
+      </div>
+      <form id="account-form" hidden>
+        <label class="name-label" for="account-login">아이디</label>
+        <input id="account-login" required minlength="3" maxlength="24" autocomplete="username" autocapitalize="none">
+        <label class="name-label account-password" for="account-password">비밀번호</label>
+        <input id="account-password" type="password" required minlength="10" maxlength="128" autocomplete="current-password">
+        <p id="account-import" class="account-note" hidden>이 브라우저에서 만든 섬을 새 계정에 같이 저장해요.</p>
+        <div class="actions account-actions">
+          <button id="account-switch" class="secondary" type="button">가입하기</button>
+          <button id="account-submit" class="primary">로그인</button>
+        </div>
+      </form>
+      <p id="account-error" class="account-note" role="status" hidden></p>
+      <button class="secondary account-close" id="account-close" type="button" aria-label="계정 닫기">×</button>
+    </dialog>
+    <dialog id="workshop-dialog" class="panel life-dialog" aria-labelledby="workshop-title">
+      <h2 id="workshop-title">섬 꾸미기</h2>
+      <div id="decor-tabs" class="catalog-tabs" role="group" aria-label="꾸미기 종류"></div>
+      <div id="decor-list" class="catalog-list"></div>
+      <div class="actions">
+        <button class="secondary" type="button" id="close-decor">닫기</button>
+        <button class="primary" type="button" id="open-shop-from-decor">포인트 상점</button>
+      </div>
+    </dialog>
+    <dialog id="shop-dialog" class="panel life-dialog" aria-labelledby="shop-title">
+      <h2 id="shop-title">포인트 상점</h2>
+      <p id="shop-points" class="account-note" role="status"></p>
+      <div id="shop-tabs" class="catalog-tabs" role="group" aria-label="상점 종류"></div>
+      <div id="shop-list" class="catalog-list"></div>
+      <p id="shop-status" class="account-note" role="status"></p>
+      <div class="actions">
+        <button class="secondary" type="button" id="close-shop">닫기</button>
+        <button class="primary" type="button" id="open-decor-from-shop">꾸미러 가기</button>
+      </div>
+    </dialog>
+    <dialog id="look-dialog" class="panel life-dialog" aria-labelledby="look-title">
+      <form id="look-form">
+        <h2 id="look-title">내 캐릭터</h2>
+        <div id="look-options"></div>
+        <div class="actions"><button id="close-look" class="secondary" type="button">취소</button><button class="primary">저장</button></div>
+      </form>
+    </dialog>
+    <dialog id="profile-dialog" class="panel life-dialog" aria-labelledby="profile-title">
+      <form id="profile-form">
+        <h2 id="profile-title">내 섬 소개</h2>
+        <label class="name-label" for="mood">지금 내 기분은!</label>
+        <select id="mood"><option value="">선택 안 함</option></select>
+        <label class="name-label profile-hobby" for="hobby">요즘 빠진 취미</label>
+        <input id="hobby" maxlength="80" placeholder="예: 밤 산책하며 별 보기">
+        <div class="actions"><button id="close-profile" class="secondary" type="button">취소</button><button class="primary">소개 저장</button></div>
+      </form>
+    </dialog>
+    <dialog id="guestbook-dialog" class="panel life-dialog" aria-labelledby="guestbook-title">
+      <h2 id="guestbook-title">섬 방명록</h2>
+      <p id="guestbook-status" class="account-note" role="status"></p>
+      <div id="visit-share" hidden>
+        <label class="name-label" for="visit-link">내 섬 방문 링크</label>
+        <div class="visit-share"><input id="visit-link" type="url" readonly><button id="copy-visit" class="secondary" type="button">복사</button></div>
+        <div id="island-sharing"></div>
+      </div>
+      <ul id="guestbook-list" class="guestbook-list"></ul>
+      <form id="guestbook-form" hidden>
+        <label class="name-label" for="guestbook-name">별명</label>
+        <input id="guestbook-name" required maxlength="24">
+        <label class="name-label profile-hobby" for="guestbook-message">한 줄 남기기</label>
+        <textarea id="guestbook-message" required maxlength="200" rows="3"></textarea>
+        <button class="primary guestbook-submit">방명록 남기기</button>
+      </form>
+      <form method="dialog" class="actions"><button class="secondary">닫기</button></form>
+    </dialog>
+    <template id="invite-sharing">
+      <button class="kakao-share" type="button">카카오톡 공유</button>
+      <details class="text-invite">
+        <summary>전화번호로 문자 초대</summary>
+        <form class="text-invite-form">
+          <label>
+            <span class="name-label">친구 전화번호</span>
+            <input type="tel" inputmode="tel" autocomplete="off" maxlength="26" placeholder="010-1234-5678" required>
+          </label>
+          <button class="secondary" type="submit">문자 앱 열기</button>
+        </form>
+      </details>
+    </template>
+    <dialog id="intro-letter" class="intro-letter" aria-labelledby="letter-title">
+      <article>
+        <div class="letter-seal" aria-hidden="true">☾</div>
+        <h2 id="letter-title">별이 뜬 섬에 온 너에게</h2>
+        <p>안녕! 여기선 밤하늘 아래 나만의 섬을 꾸미고, 친구를 불러 모닥불 앞에서 같이 놀 수 있어.</p>
+        <p>해변에서 반짝이는 조개를 누르면 포인트가 모여. 그걸로 텐트나 식물, 새로운 지형을 사서 섬을 꾸며 봐. 마음에 드는 순간엔 카메라를 돌려 스토리 사진을 남기고, 친구 섬에 들르면 방명록에 한 줄 써 줘.</p>
+        <p class="letter-signature">파도 소리가 들리는 곳에서<br><strong>같이놀자 아일랜드</strong></p>
+        <form method="dialog"><button class="primary" type="submit">섬 둘러보기</button></form>
+      </article>
+    </dialog>
+  </main>
+</body>
+</html>
